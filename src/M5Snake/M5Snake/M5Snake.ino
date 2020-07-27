@@ -30,8 +30,27 @@
 #include <M5Stack.h>
 #include "GameboyInput.h"
 #include "Power.h"
+#include "GameBoard.h"
 
+#define GAME_STATUS_INIT        0x00
+#define GAME_STATUS_MENU        0x10
+#define GAME_STATUS_START_GAME  0x20
+#define GAME_STATUS_GAME        0x21
+#define GAME_STATUS_GAMEOVER    0x30
+
+/******************************************************************************
+ * Global variables
+ *******************************************************************************/
+// Global game status
+uint8_t game_status = GAME_STATUS_INIT;
+
+/******************************************************************************
+ * Initialize components
+ *******************************************************************************/
 void setup() {
+  // Set game status
+  game_status = GAME_STATUS_INIT;
+  
   // Initialize M5Stack (LCD = true, SD = false, Serial = true, I2C = true)
   M5.begin(true, false, true, true);
 
@@ -60,13 +79,132 @@ void setup() {
   } else {
     M5.Lcd.println(F("unavailable"));
   }
+
+  // Wait some time
+  delay(1000);
 }
 
+/******************************************************************************
+ * Main loop
+ *******************************************************************************/
 void loop() {
-  uint8_t key_val = GameboyInput.getActivity();
-  if(key_val != GAMEBOY_KEY_NONE) {
-    M5.Lcd.printf("0x%02X ",key_val);
-    Serial.printf("0x%02X ",key_val);
+  // Depending on status, run the routine
+  switch(game_status) {
+    // Init phase (over)
+    case GAME_STATUS_INIT :
+      fromInitToMenu();
+      break;
+      
+    // Start menu
+    case GAME_STATUS_MENU :
+      if(GameboyInput.getActivity() == GAMEBOY_KEY_START) {
+        fromMenuToGame();
+      }
+      break;
+
+    // Game in progress
+    case GAME_STATUS_GAME :
+      gameLoop();
+      break;
+
+    // Game over
+    case GAME_STATUS_GAMEOVER :
+      delay(3000);
+      fromInitToMenu();
+      break;
   }
-  delay(5);
+
+  // By default, always adapt the charge mode for each cycle
+  Power.adaptChargeMode();
+
+  // Cycle delay
+  delay(100);
+}
+
+/******************************************************************************
+ * Routine for the game loop (Snake moving and eating cherry depending on input
+ *******************************************************************************/
+void gameLoop() {
+  // Check the activity from the input
+  switch(GameboyInput.getActivity()) {
+    case GAMEBOY_KEY_UP :
+      GameBoard.setDirection(DIRECTION_UP);
+      break;
+    case GAMEBOY_KEY_RIGHT :
+      GameBoard.setDirection(DIRECTION_RIGHT);
+      break;
+    case GAMEBOY_KEY_DOWN :
+      GameBoard.setDirection(DIRECTION_DOWN);
+      break;
+    case GAMEBOY_KEY_LEFT :
+      GameBoard.setDirection(DIRECTION_LEFT);
+      break;
+  }
+
+  // Move the snake
+  if(!GameBoard.moveSnake()) {
+    // If cannot move the snake -> game over...
+    fromGameToGameOver();
+  }
+
+  // Add a cherry 20% of chance to add a cherry
+  if(random(0,15) == 0) {
+    GameBoard.addCherry();
+  }
+
+  GameBoard.refresh();
+}
+
+/******************************************************************************
+ * Routine from GAME_STATUS_INIT to GAME_STATUS_MENU
+ *******************************************************************************/
+void fromInitToMenu() {
+  // Clear the screen
+  M5.Lcd.setBrightness(100);
+  M5.Lcd.fillScreen(BLACK);
+
+  // Show the title
+  M5.Lcd.setTextSize(5);
+  M5.Lcd.setTextColor(RED);
+  M5.Lcd.drawString(F("M5Snake"), (M5.Lcd.width() - M5.Lcd.textWidth(F("M5Snake"))) / 2, M5.Lcd.height() / 4);
+  
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.drawString(F("by Olivier Staquet"), (M5.Lcd.width() - M5.Lcd.textWidth(F("by Olivier Staquet"))) / 2, M5.Lcd.height() / 2);
+
+  // Show "Press start"
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.drawString(F("Press START to continue"), (M5.Lcd.width() - M5.Lcd.textWidth(F("Press START to continue"))) / 2, (M5.Lcd.height() / 4) * 3);
+  
+  game_status = GAME_STATUS_MENU;
+}
+
+/******************************************************************************
+ * Routine from GAME_STATUS_MENU to GAME_STATUS_GAME
+ *******************************************************************************/
+void fromMenuToGame() {
+  // Init the board game
+  GameBoard.begin();
+
+  // Define the head of the snake
+  GameBoard.startSnake();
+  GameBoard.refresh();
+  
+  game_status = GAME_STATUS_GAME;
+}
+
+/******************************************************************************
+ * Routine from GAME_STATUS_GAME to GAME_STATUS_GAMEOVER
+ *******************************************************************************/
+void fromGameToGameOver() {
+  // Clear the screen
+  M5.Lcd.setBrightness(100);
+  M5.Lcd.fillScreen(RED);
+
+  M5.Lcd.setTextSize(5);
+  M5.Lcd.setTextColor(BLACK);
+  M5.Lcd.drawString(F("GAME OVER"), (M5.Lcd.width() - M5.Lcd.textWidth(F("GAME OVER"))) / 2, M5.Lcd.height() / 4);
+
+  game_status = GAME_STATUS_GAMEOVER;
 }
