@@ -33,6 +33,9 @@ void PowerClass::adaptChargeMode() {
   } else {
     M5.Power.setCharge(true);
   }
+
+  // Define the shutdown time at 64s
+  M5.Power.setLowPowerShutdownTime(M5.Power.ShutdownTime::SHUTDOWN_64S);
 }
 
 /**
