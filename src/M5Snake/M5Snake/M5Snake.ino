@@ -38,6 +38,8 @@
 #define GAME_STATUS_GAME        0x21
 #define GAME_STATUS_GAMEOVER    0x30
 
+#define GAME_CYCLES             3         // Define the number of cycle before moving the snake
+
 /******************************************************************************
  * Global variables
  *******************************************************************************/
@@ -118,7 +120,7 @@ void loop() {
   Power.adaptChargeMode();
 
   // Cycle delay
-  delay(100);
+  delay(25);
 }
 
 /******************************************************************************
@@ -145,14 +147,14 @@ void gameLoop() {
   if(!GameBoard.moveSnake()) {
     // If cannot move the snake -> game over...
     fromGameToGameOver();
+  } else {
+    // Add a cherry some time...
+    if(random(0,15 * GAME_CYCLES) == 0) {
+      GameBoard.addCherry();
+    }
+  
+    GameBoard.refresh();
   }
-
-  // Add a cherry 20% of chance to add a cherry
-  if(random(0,15) == 0) {
-    GameBoard.addCherry();
-  }
-
-  GameBoard.refresh();
 }
 
 /******************************************************************************
@@ -185,7 +187,7 @@ void fromInitToMenu() {
  *******************************************************************************/
 void fromMenuToGame() {
   // Init the board game
-  GameBoard.begin();
+  GameBoard.begin(GAME_CYCLES);
 
   // Define the head of the snake
   GameBoard.startSnake();
@@ -205,6 +207,15 @@ void fromGameToGameOver() {
   M5.Lcd.setTextSize(5);
   M5.Lcd.setTextColor(BLACK);
   M5.Lcd.drawString(F("GAME OVER"), (M5.Lcd.width() - M5.Lcd.textWidth(F("GAME OVER"))) / 2, M5.Lcd.height() / 4);
+
+  // Max score...
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.drawString(F("Score"), (M5.Lcd.width() - M5.Lcd.textWidth(F("Score"))) / 2, M5.Lcd.height() / 2);
+  
+  M5.Lcd.setTextSize(4);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.drawString(String(GameBoard.getMaxScore()), (M5.Lcd.width() - M5.Lcd.textWidth(String(GameBoard.getMaxScore()))) / 2, (M5.Lcd.height() / 4) * 3);
 
   game_status = GAME_STATUS_GAMEOVER;
 }

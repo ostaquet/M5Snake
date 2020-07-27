@@ -10,7 +10,11 @@
 /**
  * Initialize
  */
-void GameBoardClass::begin() {
+void GameBoardClass::begin(uint8_t _max_game_cycles) {
+  // Keep the number of game cycles
+  max_game_cycles = _max_game_cycles;
+  current_game_cycle = 0;
+  
   // Init the board at blank
   for(uint8_t x = 0; x < board_width; x++) {
     for(uint8_t y = 0; y < board_height; y++) {
@@ -57,6 +61,16 @@ void GameBoardClass::startSnake() {
  * Return boolean true if OK, false if game over
  */
 bool GameBoardClass::moveSnake() {
+  // Check if it is a cycle to move
+  if(current_game_cycle < max_game_cycles) {
+    // Wait for the next cycle
+    current_game_cycle++;
+    return true;
+  } else {
+    // Reset the game cycle
+    current_game_cycle = 0; 
+  }
+  
   // Add 1 to all current block with between 1 and 512
   // to keep count of the movement of the snake (1 = head, 2 = 2nd block after head...)
   for(uint8_t x = 0; x < board_width; x++) {
@@ -113,6 +127,9 @@ bool GameBoardClass::moveSnake() {
   return true;
 }
 
+/**
+ * Identify and remove the tail (last block of the snake)
+ */
 void GameBoardClass::removeTail() {
   uint16_t greatest_value = 0;
   uint8_t tail_x = 0;
@@ -136,6 +153,26 @@ void GameBoardClass::removeTail() {
 }
 
 /**
+ * Get the max score
+ */
+uint16_t GameBoardClass::getMaxScore() {
+  uint16_t greatest_value = 0;
+
+  // Find the cell with the biggest value (it is the tail)
+  for(uint8_t x = 0; x < board_width; x++) {
+    for(uint8_t y = 0; y < board_height; y++) {
+      if(board_data[x][y] < BLOCK_STATUS_CHERRY) {
+        if(board_data[x][y] > greatest_value) {
+          greatest_value = board_data[x][y];
+        }
+      }
+    }
+  }
+
+  return greatest_value - 1;
+}
+
+/**
  * Draw the change of one cell
  */
 void GameBoardClass::drawChange(uint8_t x, uint8_t y) {
@@ -150,6 +187,7 @@ void GameBoardClass::drawChange(uint8_t x, uint8_t y) {
       break;
 
     case BLOCK_STATUS_CHERRY :
+      M5.Lcd.fillRect(pos_x, pos_y, BLOCK_SIZE, BLOCK_SIZE, BLACK);
       M5.Lcd.fillCircle(pos_x + BLOCK_SIZE / 2, pos_y + BLOCK_SIZE / 2, BLOCK_SIZE / 2 - 1, RED);
       break;
 

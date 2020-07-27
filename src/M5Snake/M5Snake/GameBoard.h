@@ -11,25 +11,25 @@
 #include <Arduino.h>
 #include <M5Stack.h>
 
-#define LCD_WIDTH               320
-#define LCD_HEIGHT              240
+#define LCD_WIDTH                 320
+#define LCD_HEIGHT                240
 
-#define BLOCK_SIZE              16
+#define BLOCK_SIZE                16
 
-#define BLOCK_STATUS_EMPTY      0x00            // Empty block
-#define BLOCK_STATUS_HEAD       0x01            // Head of the snake
-// All values between 2 and 511                 // Body of the snake, greatest value = tail
-#define BLOCK_STATUS_CHERRY     0x200           // Cherry to increase the size of the snake
+#define BLOCK_STATUS_EMPTY        0x00            // Empty block
+#define BLOCK_STATUS_HEAD         0x01            // Head of the snake
+// All values between 2 and 511                   // Body of the snake, greatest value = tail
+#define BLOCK_STATUS_CHERRY       0x200           // Cherry to increase the size of the snake
 
-#define DIRECTION_UP            0x01
-#define DIRECTION_RIGHT         0x02
-#define DIRECTION_DOWN          0x03
-#define DIRECTION_LEFT          0x04
+#define DIRECTION_UP              0x01
+#define DIRECTION_RIGHT           0x02
+#define DIRECTION_DOWN            0x03
+#define DIRECTION_LEFT            0x04
 
 class GameBoardClass {
   public:
     // Initialize
-    void begin();
+    void begin(uint8_t game_cycles = 4);
 
     // Refresh display
     void refresh();
@@ -46,6 +46,9 @@ class GameBoardClass {
 
     // Add a ramdom cherry on the board
     void addCherry();
+
+    // Get the max score
+    uint16_t getMaxScore();
     
   private:
     // Variables
@@ -54,6 +57,10 @@ class GameBoardClass {
     uint8_t current_direction = 0x00;
     uint8_t current_head_x = 0x00;
     uint8_t current_head_y = 0x00;
+
+    // Cycles
+    uint8_t max_game_cycles = 4;
+    uint8_t current_game_cycle = 0;
     
     // Keep track of the size of the board
     uint8_t board_width = LCD_WIDTH / BLOCK_SIZE;
