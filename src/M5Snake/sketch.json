@@ -1,0 +1,7 @@
+{
+  "cpu": {
+    "fqbn": "esp32:esp32:m5stack-core-esp32",
+    "name": "M5Stack Core",
+    "port": "serial:///dev/cu.usbserial-01CDDC5A"
+  }
+}
