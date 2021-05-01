@@ -23,6 +23,10 @@ All sources are available in `src/`.
 
 Nothing else specific to notify.
 
+## To build and upload
+* Go into `src/M5Snake`
+* Execute `make deploy`
+
 ## Troubleshooting
 
 ### Missing libraries during the build
