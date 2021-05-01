@@ -1,6 +1,10 @@
 # M5Snake
 Simple snake game for M5Stack Core with Gameboy face
 
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/ostaquet/M5Snake/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/ostaquet/M5Snake.svg)](#releases)
+[![GitHub issues](https://img.shields.io/github/issues/ostaquet/M5Snake.svg)](https://github.com/ostaquet/M5Snake/issues)
+
 The goal is to eat the cherries (red dot) with the snake while avoiding eating himself and running into a wall.
 
 ![Demo](extras/img/m5snake_demo.gif)
